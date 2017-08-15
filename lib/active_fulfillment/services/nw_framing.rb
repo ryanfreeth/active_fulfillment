@@ -3,8 +3,9 @@ require 'cgi'
 module ActiveFulfillment
   class NWFramingService < Service
     SERVICE_URLS = {
-      fulfillment: 'https://%{login}:%{password}@www.nwframing.com/IFS/api/%{role}',
-      inventory: 'https://%{subdomain}.sixworks.co.uk/api/1/stock'
+      fulfillment: 'https://%{login}:%{password}@www.nwframing.com/IFS/api/%{role}/OrderBody',
+      inventory: 'https://%{login}:%{password}@www.nwframing.com/IFS/api/%{role}',
+      tracking: 'https://%{login}:%{password}@www.nwframing.com/IFS/api/%{role}/OrderStatus/%{id}'
     }.freeze
 
     # Pass in the login and password for the NWFraming account.
@@ -46,10 +47,10 @@ module ActiveFulfillment
       {}
     end
 
-    def commit(_action, request)
+    def commit(action, request)
       request = request.merge(test: test?)
       headers = build_headers
-      endpoint = build_endpoint
+      endpoint = build_endpoint(action)
       data = ssl_post(endpoint, JSON.generate(request), headers)
       response = parse_response(data)
       Response.new(response['success'], 'message', response, test: response['test'])
@@ -62,7 +63,8 @@ module ActiveFulfillment
     def get(action, request)
       request = request.merge(test: test?)
       headers = build_headers
-      data = ssl_get(format(SERVICE_URLS[action], role: @options[:role]) + '?' + request.to_query, headers)
+      endpoint = build_endpoint(action)
+      data = ssl_get(endpoint + '?' + request.to_query, headers)
       response = parse_response(data)
       Response.new(response['success'], 'message', response, test: response['test'])
     rescue ActiveUtils::ResponseError => e
@@ -135,7 +137,7 @@ module ActiveFulfillment
       }
     end
 
-    def build_endpoint
+    def build_endpoint(action)
       format(SERVICE_URLS[action], login: CGI.escape(@options[:login]), password: @options[:password], role: @options[:role])
     end
   end
