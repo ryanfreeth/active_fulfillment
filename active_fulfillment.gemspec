@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
 
   s.homepage = %q{http://github.com/shopify/active_fulfillment}
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
+  s.rubygems_version = %q{2.5.2.1}
   s.summary = %q{Framework and tools for dealing with shipping, tracking and order fulfillment services.}
 
   s.add_dependency('activesupport', '>= 3.2.9', '< 5.2.0')
