@@ -16,6 +16,10 @@ module ActiveFulfillment
       super
     end
 
+    def test_mode?
+      true
+    end
+
     def fulfill(order_id, shipping_address, line_items, options = {})
       requires!(options, :billing_address)
       commit :fulfillment, build_fulfillment_request(order_id, shipping_address, line_items, options)
