@@ -3,9 +3,9 @@ require 'cgi'
 module ActiveFulfillment
   class NWFramingService < Service
     SERVICE_URLS = {
-      fulfillment: 'https://%{login}:%{password}@www.nwframing.com/IFS/api/%{role}/OrderBody',
-      inventory: 'https://%{login}:%{password}@www.nwframing.com/IFS/api/%{role}',
-      tracking: 'https://%{login}:%{password}@www.nwframing.com/IFS/api/%{role}/OrderStatus/%{id}'
+      fulfillment: 'https://%<login>s:%<password>s@www.nwframing.com/IFS%<test>s/api/%<role>s/OrderBody',
+      inventory: 'https://%<login>s:%<password>s@www.nwframing.com/IFS%<test>s/api/%<role>s',
+      tracking: 'https://%<login>s:%<password>s@www.nwframing.com/IFS%<test>s/api/%<role>s/OrderStatus/%<id>s'
     }.freeze
 
     # Pass in the login and password for the NWFraming account.
@@ -103,7 +103,7 @@ module ActiveFulfillment
         Postal: address[:zip].blank? ? '-' : address[:zip]
       }
       data[:ShipVia] = 'FedEx'
-      data[:ShippingMethod] = 'Dunno'
+      data[:ShippingMethod] = 'Ground'
 
       data[:BillToName] = address[:company] unless address[:company].blank?
       data[:email] = address[:email] unless address[:email].blank?
@@ -142,7 +142,8 @@ module ActiveFulfillment
     end
 
     def build_endpoint(action)
-      format(SERVICE_URLS[action], login: CGI.escape(@options[:login]), password: @options[:password], role: @options[:role])
+      test = @options[:test] ? '.Test' : ''
+      format(SERVICE_URLS[action], login: CGI.escape(@options[:login]), password: @options[:password], role: @options[:role], test: test)
     end
   end
 end
