@@ -4,9 +4,9 @@ require 'base64'
 module ActiveFulfillment
   class NWFramingService < Service
     SERVICE_URLS = {
-      fulfillment: 'https://%<login>s:%<password>s@www.nwframing.com/IFS%<test>s/api/%<role>s/OrderBody',
-      inventory: 'https://%<login>s:%<password>s@www.nwframing.com/IFS%<test>s/api/%<role>s',
-      tracking: 'https://%<login>s:%<password>s@www.nwframing.com/IFS%<test>s/api/%<role>s/OrderStatus/%<id>s'
+      fulfillment: 'https://www.nwframing.com/IFS%<test>s/api/%<role>s/OrderBody',
+      inventory: 'https://www.nwframing.com/IFS%<test>s/api/%<role>s',
+      tracking: 'https://www.nwframing.com/IFS%<test>s/api/%<role>s/OrderStatus/%<id>s'
     }.freeze
 
     # Pass in the login and password for the NWFraming account.
@@ -38,7 +38,7 @@ module ActiveFulfillment
 
     def build_fulfillment_request(order_id, shipping_address, line_items, _options)
       data = {
-        OrderId: order_id,
+        OrderId: order_id.to_s,
         Destination: format_address(shipping_address),
         OrderItems: format_line_items(line_items)
       }
@@ -51,12 +51,11 @@ module ActiveFulfillment
     end
 
     def commit(action, request)
-      request = request.merge(test: test?)
       headers = build_headers
       endpoint = build_endpoint(action)
       data = ssl_post(endpoint, JSON.generate(request), headers)
       response = parse_response(data)
-      Response.new(response['success'], 'message', response, test: response['test'])
+      Response.new('success', '200', {})
     rescue ActiveUtils::ResponseError => e
       handle_error(e)
     rescue JSON::ParserError => e
@@ -69,7 +68,7 @@ module ActiveFulfillment
       endpoint = build_endpoint(action)
       data = ssl_get(endpoint + '?' + request.to_query, headers)
       response = parse_response(data)
-      Response.new(response['success'], 'message', response, test: response['test'])
+      Response.new(response[0], '200', response)
     rescue ActiveUtils::ResponseError => e
       handle_error(e)
     rescue JSON::ParserError => e
@@ -92,22 +91,24 @@ module ActiveFulfillment
       response
     end
 
-    def format_address(address)
-      data = {
-        Name: address[:name],
-        Address1: address[:address1],
-        City: address[:city],
-        State: address[:state],
-        Country: address[:country],
-        Postal: address[:zip].blank? ? '-' : address[:zip]
+    def format_address(shipping_address)
+      data = {}
+      address = {
+        Name: shipping_address[:name],
+        Address1: shipping_address[:address1],
+        City: shipping_address[:city],
+        State: shipping_address[:state],
+        Country: shipping_address[:country],
+        Postal: shipping_address[:zip].blank? ? '-' : shipping_address[:zip]
       }
+      data[:Address] = address
       data[:ShipVia] = 'FedEx'
       data[:ShippingMethod] = 'Ground'
 
-      data[:BillToName] = address[:company] unless address[:company].blank?
-      data[:email] = address[:email] unless address[:email].blank?
-      data[:Address2] = address[:address2] unless address[:address2].blank?
-      data[:Phone] = address[:phone] unless address[:phone].blank?
+      data[:Address][:BillToName] = shipping_address[:company] unless shipping_address[:company].blank?
+      data[:Address][:email] = shipping_address[:email] unless shipping_address[:email].blank?
+      data[:Address][:Address2] = shipping_address[:address2] unless shipping_address[:address2].blank?
+      data[:Address][:Phone] = shipping_address[:phone] unless shipping_address[:phone].blank?
       data
     end
 
@@ -120,7 +121,7 @@ module ActiveFulfillment
           Description: item[:description],
           RetailPrice: item[:price],
           Images: format_image(item),
-          ItemId: index
+          ItemId: (index + 1).to_s
         }
       end
       data
