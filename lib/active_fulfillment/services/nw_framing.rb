@@ -37,11 +37,9 @@ module ActiveFulfillment
 
     def build_fulfillment_request(order_id, shipping_address, line_items, _options)
       data = {
-        order: {
-          OrderId: order_id,
-          Destination: format_address(shipping_address),
-          OrderItems: format_line_items(line_items)
-        }
+        OrderId: order_id,
+        Destination: format_address(shipping_address),
+        OrderItems: format_line_items(line_items)
       }
       data[:DutiesPaid] = 'true'
       data
@@ -137,7 +135,8 @@ module ActiveFulfillment
 
     def build_headers
       {
-        'User-Agent' => 'Ryan Freeth Fulfillment'
+        'User-Agent' => 'Ryan Freeth Fulfillment',
+        'Content-Type' => 'application/json'
       }
     end
 
