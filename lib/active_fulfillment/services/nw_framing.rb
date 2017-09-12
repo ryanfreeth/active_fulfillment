@@ -1,4 +1,5 @@
 require 'cgi'
+require 'base64'
 
 module ActiveFulfillment
   class NWFramingService < Service
@@ -135,6 +136,7 @@ module ActiveFulfillment
 
     def build_headers
       {
+        'Authorization' => 'Basic ' + Base64.encode64(@options[:login] + ':' + @options[:password]),
         'User-Agent' => 'Ryan Freeth Fulfillment',
         'Content-Type' => 'application/json'
       }
