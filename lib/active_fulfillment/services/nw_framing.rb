@@ -36,7 +36,7 @@ module ActiveFulfillment
 
     private
 
-    def build_fulfillment_request(order_id, shipping_address, line_items, _options)
+    def build_fulfillment_request(order_id, shipping_address, line_items, options)
       data = {
         OrderId: order_id.to_s,
         Destination: format_address(shipping_address),
@@ -145,7 +145,7 @@ module ActiveFulfillment
 
     def build_endpoint(action)
       test = @options[:test] ? '.Test' : ''
-      format(SERVICE_URLS[action], login: CGI.escape(@options[:login]), password: @options[:password], role: @options[:role], test: test)
+      format(SERVICE_URLS[action], role: @options[:role], test: test)
     end
   end
 end
