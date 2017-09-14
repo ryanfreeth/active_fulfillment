@@ -18,7 +18,7 @@ module ActiveFulfillment
     end
 
     def test_mode?
-      true
+      false
     end
 
     def fulfill(order_id, shipping_address, line_items, options = {})
