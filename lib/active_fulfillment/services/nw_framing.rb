@@ -18,7 +18,7 @@ module ActiveFulfillment
     end
 
     def test_mode?
-      false
+      true
     end
 
     def fulfill(order_id, shipping_address, line_items, options = {})
@@ -43,6 +43,7 @@ module ActiveFulfillment
         OrderItems: format_line_items(line_items)
       }
       data[:DutiesPaid] = 'true'
+      data[:SpecialInstructions] = options.special_instructions
       data
     end
 
@@ -130,7 +131,7 @@ module ActiveFulfillment
     def format_image(item)
       images = []
       images << {
-        ImageID: item[:sku],
+        ImageID: item[:title],
         URL: item[:url]
       }
     end
