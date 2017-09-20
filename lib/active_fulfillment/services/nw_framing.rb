@@ -43,7 +43,7 @@ module ActiveFulfillment
         OrderItems: format_line_items(line_items)
       }
       data[:DutiesPaid] = 'true'
-      data[:SpecialInstructions] = options.special_instructions
+      data[:SpecialInstructions] = options[:special_instructions]
       data
     end
 
@@ -131,7 +131,7 @@ module ActiveFulfillment
     def format_image(item)
       images = []
       images << {
-        ImageID: item[:title],
+        ImageID: item[:image_id],
         URL: item[:url]
       }
     end
